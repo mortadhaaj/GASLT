@@ -121,6 +121,10 @@ class Batch:
         self.sgn_mask = self.sgn_mask.cuda()
         self.sgn_lengths = self.sgn_lengths.cuda()
 
+        if self.gls is not None:
+            self.gls = self.gls.cuda()
+            self.gls_lengths = self.gls_lengths.cuda()
+
         if self.txt_input is not None:
             self.txt = self.txt.cuda()
             self.txt_mask = self.txt_mask.cuda()
@@ -133,8 +137,10 @@ class Batch:
         :return:
         """
         _, perm_index = self.sgn_lengths.sort(0, descending=True)
+        # Move perm_index to CPU to avoid device mismatch
+        perm_index = perm_index.cpu()
         rev_index = [0] * perm_index.size(0)
-        for new_pos, old_pos in enumerate(perm_index.cpu().numpy()):
+        for new_pos, old_pos in enumerate(perm_index.numpy()):
             rev_index[old_pos] = new_pos
 
         self.sgn = self.sgn[perm_index]
